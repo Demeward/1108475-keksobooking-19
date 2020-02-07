@@ -17,6 +17,7 @@
     'palace': 10000
   };
 
+  var PRICE_DEFAULT = 1000;
   var capacitySelection = document.querySelector('#capacity');
   var capacityOptions = capacitySelection.querySelectorAll('option');
   var roomSelection = document.querySelector('#room_number');
@@ -58,8 +59,8 @@
     }
   });
 
-  priceInput.min = 1000;
-  priceInput.placeholder = 1000;
+  priceInput.min = PRICE_DEFAULT;
+  priceInput.placeholder = PRICE_DEFAULT;
 
   accommodationSelection.addEventListener('change', function () {
     priceInput.min = MinCost[accommodationSelection.value];

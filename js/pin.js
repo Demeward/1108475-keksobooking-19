@@ -31,8 +31,8 @@
       if (mapCard) {
         mapCard.remove();
       }
-      window.offers.forEach(function (offer) {
-        var card = window.card.renderCard(offer);
+      window.data.offers.forEach(function (offer) {
+        var card = window.card.render(offer);
         if (card.querySelector('.popup__avatar').src === pinElement.querySelector('img').src) {
           mapCards.insertAdjacentElement('beforebegin', card);
         }
@@ -56,13 +56,17 @@
    * Создаёт DocumentFragment с разметкой меток
    * @return {*} Фрагмент для вставки на страницу
   */
-  window.showPins = function () {
+  var showPins = function () {
     var fragment = document.createDocumentFragment();
-    window.offers.forEach(function (offerPin) {
+    window.data.offers.forEach(function (offerPin) {
       fragment.appendChild(renderPin(offerPin));
     });
     return fragment;
   };
 
+
+  window.pin = {
+    show: showPins
+  };
 
 })();
