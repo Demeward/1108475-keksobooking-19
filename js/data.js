@@ -68,5 +68,8 @@
     return offers;
   };
 
-  window.offers = generateOffers(OFFERS_AMOUNT);
+  window.data = {
+    coordinates: coordinates,
+    offers: generateOffers(OFFERS_AMOUNT)
+  };
 })();
