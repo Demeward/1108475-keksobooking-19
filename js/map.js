@@ -20,6 +20,16 @@
   var formElements = form.querySelectorAll('fieldset');
   var activeState = false;
 
+
+  var successHandler = function (offers) {
+    var fragment = document.createDocumentFragment();
+
+    offers.forEach(function (offer) {
+      fragment.appendChild(window.pin.render(offer));
+    });
+    similarPins.appendChild(fragment);
+  };
+
   /**
    * Переводит страницу в активное или неактивное состояние
    * @param {boolean} active - Активное или неактивное состояние страницы
@@ -35,9 +45,9 @@
       mapFilters.forEach(function (fieldset) {
         fieldset.disabled = false;
       });
+      window.server.load(successHandler);
       address.value = MainPin.LEFT_DEFAULT + (Math.round(MainPin.WIDTH / 2)) + ', ' + (MainPin.TOP_DEFAULT + MainPin.HEIGHT + MainPin.PIN_TAIL);
       address.readOnly = true;
-      similarPins.appendChild(window.pin.show());
       mainPin.removeEventListener('mousedown', onClickActiveState);
       mainPin.removeEventListener('keydown', onKeydownActiveState);
     } else {
@@ -73,7 +83,7 @@
     }
   };
 
-  var mainPinHandler = function (evt) {
+  var onMainPinClick = function (evt) {
     evt.preventDefault();
 
     var startCoords = {
@@ -107,6 +117,24 @@
         mainPin.style.top = (mainPin.offsetTop - shift.y) + 'px';
       }
 
+      if (pinCoords.x < window.data.coordinates.x.min) {
+        pinCoords.x = window.data.coordinates.x.min;
+        mainPin.style.left = pinCoords.x - Math.round(MainPin.WIDTH / 2) + 'px';
+      }
+      if (pinCoords.x > window.data.coordinates.x.max) {
+        pinCoords.x = window.data.coordinates.x.max;
+        mainPin.style.left = pinCoords.x - Math.round(MainPin.WIDTH / 2) + 'px';
+      }
+
+      if (pinCoords.y < window.data.coordinates.y.min) {
+        pinCoords.y = window.data.coordinates.y.min;
+        mainPin.style.top = pinCoords.y - MainPin.HEIGHT - MainPin.PIN_TAIL + 'px';
+      }
+      if (pinCoords.y > window.data.coordinates.y.max) {
+        pinCoords.y = window.data.coordinates.y.max;
+        mainPin.style.top = pinCoords.y - MainPin.HEIGHT - MainPin.PIN_TAIL + 'px';
+      }
+
       address.value = pinCoords.x + ', ' + pinCoords.y;
     };
 
@@ -123,7 +151,7 @@
   };
 
   mainPin.addEventListener('mousedown', onClickActiveState);
-  mainPin.addEventListener('mousedown', mainPinHandler);
+  mainPin.addEventListener('mousedown', onMainPinClick);
   mainPin.addEventListener('keydown', onKeydownActiveState);
 
 })();

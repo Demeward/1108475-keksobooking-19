@@ -31,12 +31,7 @@
       if (mapCard) {
         mapCard.remove();
       }
-      window.data.offers.forEach(function (offer) {
-        var card = window.card.render(offer);
-        if (card.querySelector('.popup__avatar').src === pinElement.querySelector('img').src) {
-          mapCards.insertAdjacentElement('beforebegin', card);
-        }
-      });
+      mapCards.insertAdjacentElement('beforebegin', window.card.render(offerPin));
     };
 
     pinElement.addEventListener('click', function () {
@@ -52,21 +47,8 @@
     return pinElement;
   };
 
-  /**
-   * Создаёт DocumentFragment с разметкой меток
-   * @return {*} Фрагмент для вставки на страницу
-  */
-  var showPins = function () {
-    var fragment = document.createDocumentFragment();
-    window.data.offers.forEach(function (offerPin) {
-      fragment.appendChild(renderPin(offerPin));
-    });
-    return fragment;
-  };
-
-
   window.pin = {
-    show: showPins
+    render: renderPin
   };
 
 })();
