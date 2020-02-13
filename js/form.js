@@ -18,6 +18,7 @@
   };
 
   var PRICE_DEFAULT = 1000;
+  var offerForm = document.querySelector('.ad-form');
   var capacitySelection = document.querySelector('#capacity');
   var capacityOptions = capacitySelection.querySelectorAll('option');
   var roomSelection = document.querySelector('#room_number');
@@ -89,5 +90,82 @@
     timeInSelection.value = evt.target.value;
   });
 
+  var main = document.querySelector('main');
+
+  var isFormSent = function () {
+    var successTemplate = document.querySelector('#success').content.querySelector('.success');
+    var successMessage = successTemplate.cloneNode(true);
+    window.map.setInactiveState();
+    window.map.pinHandler();
+    priceInput.min = MinCost[accommodationSelection.value];
+    priceInput.placeholder = MinCost[accommodationSelection.value];
+    main.appendChild(successMessage);
+
+    var onKeydownCloseSuccessMessage = function (evt) {
+      if (evt.key === window.util.ESCAPE_KEY) {
+        onClickCloseSuccessMessage();
+      }
+    };
+
+    document.addEventListener('keydown', onKeydownCloseSuccessMessage);
+
+
+    document.addEventListener('click', function () {
+      onClickCloseSuccessMessage();
+    });
+
+    var onClickCloseSuccessMessage = function () {
+      main.removeChild(successMessage);
+      document.removeEventListener('keydown', onKeydownCloseSuccessMessage);
+      document.removeEventListener('click', onClickCloseSuccessMessage);
+    };
+  };
+
+  var isErrorOccurred = function () {
+    var errorTemplate = document.querySelector('#error').content.querySelector('.error');
+    var errorMessage = errorTemplate.cloneNode(true);
+    main.appendChild(errorMessage);
+
+    var errorClose = document.querySelector('.error__button');
+    errorClose.addEventListener('click', function () {
+      onClickCloseErrorMessage();
+    });
+
+    var onKeydownCloseErrorMessage = function (evt) {
+      if (evt.key === window.util.ESCAPE_KEY) {
+        onClickCloseErrorMessage();
+      }
+    };
+    document.addEventListener('keydown', onKeydownCloseErrorMessage);
+
+    document.addEventListener('click', function () {
+      onClickCloseErrorMessage();
+    });
+
+    var onClickCloseErrorMessage = function () {
+      main.removeChild(errorMessage);
+      document.addEventListener('click', onClickCloseErrorMessage);
+      document.removeEventListener('keydown', onKeydownCloseErrorMessage);
+      errorClose.removeEventListener('click', onClickCloseErrorMessage);
+    };
+  };
+
+  offerForm.addEventListener('submit', function (evt) {
+    window.server.sendForm(new FormData(offerForm), isFormSent, isErrorOccurred);
+    evt.preventDefault();
+  });
+
+  var cleanForm = document.querySelector('.ad-form__reset');
+  cleanForm.addEventListener('click', function () {
+    window.map.setInactiveState();
+    window.map.pinHandler();
+    priceInput.min = MinCost[accommodationSelection.value];
+    priceInput.placeholder = MinCost[accommodationSelection.value];
+  });
+
+  window.form = {
+    filterCapacity: filterCapacity,
+    roomSelection: roomSelection
+  };
 
 })();

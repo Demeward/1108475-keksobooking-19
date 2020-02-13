@@ -12,10 +12,10 @@
   var cardTemplate = document.getElementById('card').content.querySelector('.popup');
 
   /**
-     * Задаёт на странице разметку для карточки объявления на основе шаблона и объекта данных
-     * @param {Object} offerCard - Объект с данными
-     * @return {*} Разметка карточки объявления для вставки на страницу
-    */
+   * Задаёт на странице разметку для карточки объявления на основе шаблона и объекта данных
+   * @param {Object} offerCard - Объект с данными
+   * @return {*} Разметка карточки объявления для вставки на страницу
+  */
   var renderCard = function (offerCard) {
 
     var cardElement = cardTemplate.cloneNode(true);
@@ -55,8 +55,8 @@
     var cardClose = cardElement.querySelector('.popup__close');
 
     /**
-       * Закрывает карточку обяъвления при клике по иконке закрытия или нажатии Esc
-      */
+     * Закрывает карточку обяъвления при клике по иконке закрытия или нажатии Esc
+    */
     var onClickCloseCard = function () {
       var mapCard = document.querySelector('.map__card');
 
