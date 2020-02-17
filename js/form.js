@@ -96,7 +96,7 @@
     var successTemplate = document.querySelector('#success').content.querySelector('.success');
     var successMessage = successTemplate.cloneNode(true);
     window.map.setInactiveState();
-    window.map.pinHandler();
+    window.map.clickMainPin();
     priceInput.min = MinCost[accommodationSelection.value];
     priceInput.placeholder = MinCost[accommodationSelection.value];
     main.appendChild(successMessage);
@@ -107,18 +107,15 @@
       }
     };
 
-    document.addEventListener('keydown', onKeydownCloseSuccessMessage);
-
-
-    document.addEventListener('click', function () {
-      onClickCloseSuccessMessage();
-    });
-
     var onClickCloseSuccessMessage = function () {
       main.removeChild(successMessage);
       document.removeEventListener('keydown', onKeydownCloseSuccessMessage);
       document.removeEventListener('click', onClickCloseSuccessMessage);
     };
+
+    document.addEventListener('keydown', onKeydownCloseSuccessMessage);
+    document.addEventListener('click', onClickCloseSuccessMessage);
+
   };
 
   var isErrorOccurred = function () {
@@ -127,27 +124,22 @@
     main.appendChild(errorMessage);
 
     var errorClose = document.querySelector('.error__button');
-    errorClose.addEventListener('click', function () {
-      onClickCloseErrorMessage();
-    });
 
     var onKeydownCloseErrorMessage = function (evt) {
       if (evt.key === window.util.ESCAPE_KEY) {
         onClickCloseErrorMessage();
       }
     };
-    document.addEventListener('keydown', onKeydownCloseErrorMessage);
-
-    document.addEventListener('click', function () {
-      onClickCloseErrorMessage();
-    });
 
     var onClickCloseErrorMessage = function () {
       main.removeChild(errorMessage);
-      document.addEventListener('click', onClickCloseErrorMessage);
+      document.removeEventListener('click', onClickCloseErrorMessage);
       document.removeEventListener('keydown', onKeydownCloseErrorMessage);
-      errorClose.removeEventListener('click', onClickCloseErrorMessage);
     };
+
+    errorClose.addEventListener('click', onClickCloseErrorMessage);
+    document.addEventListener('click', onClickCloseErrorMessage);
+    document.addEventListener('keydown', onKeydownCloseErrorMessage);
   };
 
   offerForm.addEventListener('submit', function (evt) {
@@ -158,7 +150,7 @@
   var cleanForm = document.querySelector('.ad-form__reset');
   cleanForm.addEventListener('click', function () {
     window.map.setInactiveState();
-    window.map.pinHandler();
+    window.map.clickMainPin();
     priceInput.min = MinCost[accommodationSelection.value];
     priceInput.placeholder = MinCost[accommodationSelection.value];
   });
