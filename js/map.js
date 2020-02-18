@@ -33,6 +33,11 @@
 
 
   var isDataSuccess = function (offers) {
+    window.data = offers;
+    renderOffers(window.filter.offers(offers));
+  };
+
+  var renderOffers = function (offers) {
     var fragment = document.createDocumentFragment();
 
     offers.forEach(function (offer) {
@@ -50,6 +55,20 @@
     node.style.fontSize = '30px';
     node.textContent = errorMessage;
     document.body.insertAdjacentElement('afterbegin', node);
+  };
+
+  var cleanOffers = function () {
+    var mapCard = map.querySelector('.map__card');
+    if (mapCard) {
+      mapCard.remove();
+    }
+    var mapPins = map.querySelectorAll('.map__pin');
+
+    mapPins.forEach(function (pin) {
+      if (!pin.classList.contains('map__pin--main')) {
+        pin.remove();
+      }
+    });
   };
 
   /**
@@ -85,17 +104,7 @@
     formElements.forEach(function (element) {
       element.disabled = true;
     });
-    var mapCard = map.querySelector('.map__card');
-    if (mapCard) {
-      mapCard.remove();
-    }
-    var mapPins = map.querySelectorAll('.map__pin');
-
-    mapPins.forEach(function (pin) {
-      if (!pin.classList.contains('map__pin--main')) {
-        pin.remove();
-      }
-    });
+    cleanOffers();
     offerForm.reset();
     filterForm.reset();
     window.form.filterCapacity(window.form.roomSelection.value);
@@ -118,12 +127,12 @@
     }
   };
 
-  var pinHandler = function () {
+  var clickMainPin = function () {
     mainPin.addEventListener('mousedown', onClickActiveState);
     mainPin.addEventListener('keydown', onKeydownActiveState);
   };
 
-  pinHandler();
+  clickMainPin();
 
   var onMainPinClick = function (evt) {
     evt.preventDefault();
@@ -195,8 +204,10 @@
   mainPin.addEventListener('mousedown', onMainPinClick);
 
   window.map = {
+    renderOffers: renderOffers,
+    cleanOffers: cleanOffers,
     setInactiveState: setInactiveState,
-    pinHandler: pinHandler
+    clickMainPin: clickMainPin
   };
 
 })();
