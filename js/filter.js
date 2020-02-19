@@ -42,13 +42,20 @@
   };
 
   var filterOffers = function (data) {
-    return data.filter(function (offer) {
-      return applyAccommodationFilter(offer) &&
-      applyRoomsFilter(offer) &&
-      applyGuestsFilter(offer) &&
-      applyPriceFilter(offer) &&
-      applyFeaturesFilter(offer);
-    }).slice(0, MAX_OFFERS_AMOUNT);
+    var filteredOffers = [];
+    for (var i = 0; i < data.length; i++) {
+      if (applyAccommodationFilter(data[i]) &&
+      applyRoomsFilter(data[i]) &&
+      applyGuestsFilter(data[i]) &&
+      applyPriceFilter(data[i]) &&
+      applyFeaturesFilter(data[i])) {
+        if (filteredOffers.length === MAX_OFFERS_AMOUNT) {
+          break;
+        }
+        filteredOffers.push(data[i]);
+      }
+    }
+    return filteredOffers;
   };
 
   mapFilters.addEventListener('change', function () {
