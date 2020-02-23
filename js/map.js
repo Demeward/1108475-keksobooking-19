@@ -37,14 +37,14 @@
     renderOffers(window.filter.offers(offers));
   };
 
-  var renderOffers = function (offers) {
+  var renderOffers = window.debounce(function (offers) {
     var fragment = document.createDocumentFragment();
 
     offers.forEach(function (offer) {
       fragment.appendChild(window.pin.render(offer));
     });
     similarPins.appendChild(fragment);
-  };
+  });
 
   var isDataError = function (errorMessage) {
     var node = document.createElement('div');

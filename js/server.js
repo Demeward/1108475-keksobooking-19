@@ -2,6 +2,8 @@
 
 (function () {
 
+  var DATA_URL = 'https://js.dump.academy/keksobooking/data';
+  var FORM_URL = 'https://js.dump.academy/keksobooking';
   var StatusCode = {
     OK: 200
   };
@@ -30,22 +32,20 @@
   };
 
   var load = function (onSuccess, onError) {
-    var URL = 'https://js.dump.academy/keksobooking/data';
     var xhr = new XMLHttpRequest();
 
     getXhrStatus(xhr, onSuccess, onError);
 
-    xhr.open('GET', URL);
+    xhr.open('GET', DATA_URL);
     xhr.send();
   };
 
   var sendForm = function (form, onFormSuccess, onFormError) {
-    var URL = 'https://js.dump.academy/keksobooking';
     var xhr = new XMLHttpRequest();
 
     getXhrStatus(xhr, onFormSuccess, onFormError);
 
-    xhr.open('POST', URL);
+    xhr.open('POST', FORM_URL);
     xhr.send(form);
   };
 
