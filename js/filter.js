@@ -11,6 +11,8 @@
   var featuresFilter = mapFilters.querySelectorAll('#housing-features input');
   var ANY = 'any';
   var MAX_OFFERS_AMOUNT = 5;
+  var LOW_TO_MIDDLE_PRICE = 10000;
+  var MIDDLE_TO_HIGH_PRICE = 50000;
 
   var applyAccommodationFilter = function (offer) {
     return accommodationFilter.value === ANY ? true : accommodationFilter.value === offer.offer.type;
@@ -26,9 +28,9 @@
 
   var applyPriceFilter = function (offer) {
     var PricePool = {
-      'low': offer.offer.price <= 10000,
-      'middle': offer.offer.price > 10000 && offer.offer.price <= 50000,
-      'high': offer.offer.price > 50000,
+      'low': offer.offer.price <= LOW_TO_MIDDLE_PRICE,
+      'middle': offer.offer.price > LOW_TO_MIDDLE_PRICE && offer.offer.price <= MIDDLE_TO_HIGH_PRICE,
+      'high': offer.offer.price > MIDDLE_TO_HIGH_PRICE,
     };
     return priceFilter.value === ANY ? true : PricePool[priceFilter.value];
   };
