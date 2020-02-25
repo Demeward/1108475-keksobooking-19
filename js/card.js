@@ -9,6 +9,11 @@
     'bungalo': 'Бунгало'
   };
 
+  var CardPhoto = {
+    WIDTH: 45,
+    HEIGHT: 40
+  };
+
   var cardTemplate = document.getElementById('card').content.querySelector('.popup');
 
   /**
@@ -46,8 +51,8 @@
       cardPhoto.className = 'popup__photo';
       cardPhoto.src = photo;
       cardPhoto.alt = 'Фотография жилья';
-      cardPhoto.style.width = 45 + 'px';
-      cardPhoto.style.height = 40 + 'px';
+      cardPhoto.style.width = CardPhoto.WIDTH + 'px';
+      cardPhoto.style.height = CardPhoto.HEIGHT + 'px';
 
       cardElement.querySelector('.popup__photos').appendChild(cardPhoto);
     });
