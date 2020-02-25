@@ -85,6 +85,7 @@
       fieldset.disabled = false;
     });
     window.server.load(isDataSuccess, isDataError);
+    window.images.change();
     address.value = MainPin.LEFT_DEFAULT + (Math.round(MainPin.WIDTH / 2)) + ', ' + (MainPin.TOP_DEFAULT + MainPin.HEIGHT + MainPin.PIN_TAIL);
     address.readOnly = true;
     mainPin.removeEventListener('mousedown', onClickActiveState);
@@ -107,6 +108,8 @@
     cleanOffers();
     offerForm.reset();
     filterForm.reset();
+    window.images.clean();
+    window.images.remove();
     window.form.filterCapacity(window.form.roomSelection.value);
     mainPin.style.left = MainPin.LEFT_DEFAULT + 'px';
     mainPin.style.top = MainPin.TOP_DEFAULT + 'px';
