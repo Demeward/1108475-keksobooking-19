@@ -1,100 +1,78 @@
-'use strict';
+// 'use strict';
+
+const DEFAULT_AVATAR = 'img/muffin-grey.svg';
+const avatarLoader = document.querySelector('#avatar');
+const avatarPreview = document.querySelector('.ad-form-header__preview img');
+const photoLoader = document.querySelector('#images');
+const photoContainer = document.querySelector('.ad-form__photo-container');
+const firstPhotoWrapper = document.querySelector('.ad-form__photo');
+
+const Photo = {
+  WIDTH: '70px',
+  HEIGHT: '70px'
+};
 
 
-(function () {
+const createPhoto = function (photo) {
+  const newPhoto = document.createElement('img');
+  newPhoto.src = photo;
+  newPhoto.style.width = Photo.WIDTH;
+  newPhoto.style.height = Photo.HEIGHT;
+  newPhoto.alt = 'Фотография жилья';
+  return newPhoto;
+};
 
-  var FILE_TYPES = ['jpg', 'jpeg', 'png'];
-  var DEFAULT_AVATAR = 'img/muffin-grey.svg';
-  var avatarLoader = document.querySelector('#avatar');
-  var avatarPreview = document.querySelector('.ad-form-header__preview img');
-  var photoLoader = document.querySelector('#images');
-  var photoContainer = document.querySelector('.ad-form__photo-container');
-  var firstPhotoWrapper = document.querySelector('.ad-form__photo');
+const addPhoto = function (photo) {
+  const newPhotoWrapper = document.createElement('div');
+  newPhotoWrapper.classList.add('ad-form__photo');
+  newPhotoWrapper.classList.add('ad-form__photo--added');
+  newPhotoWrapper.appendChild(createPhoto(photo));
+  photoContainer.appendChild(newPhotoWrapper);
+};
 
-  var Photo = {
-    WIDTH: '70px',
-    HEIGHT: '70px'
-  };
-
-
-  var onAvatarChange = function (evt) {
-    loadImage(evt.target, changeAvatar);
-  };
-
-  var onPhotoChange = function (evt) {
-    loadImage(evt.target, addPhoto);
-  };
-
-  var changeAvatar = function (avatar) {
-    avatarPreview.src = avatar;
-  };
-
-  var createPhoto = function (photo) {
-    var newPhoto = document.createElement('img');
-    newPhoto.src = photo;
-    newPhoto.style.width = Photo.WIDTH;
-    newPhoto.style.height = Photo.HEIGHT;
-    newPhoto.alt = 'Фотография жилья';
-    return newPhoto;
-  };
-
-  var addPhoto = function (photo) {
-    if (firstPhotoWrapper.querySelector('img')) {
-      var newPhotoWrapper = document.createElement('div');
-      newPhotoWrapper.classList.add('ad-form__photo');
-      newPhotoWrapper.classList.add('ad-form__photo--added');
-      newPhotoWrapper.appendChild(createPhoto(photo));
-      photoContainer.appendChild(newPhotoWrapper);
-    } else {
-      firstPhotoWrapper.appendChild(createPhoto(photo));
-    }
-  };
-
-  var loadImage = function (imageLoader, addImage) {
-    var imageFiles = Array.from(imageLoader.files);
-    if (imageFiles) {
-      imageFiles.forEach(function (file) {
-        var imageFileName = file.name.toLowerCase();
-        var matches = FILE_TYPES.some(function (type) {
-          return imageFileName.endsWith(type);
-        });
-        if (matches) {
-          var reader = new FileReader();
-          reader.addEventListener('load', function (evt) {
-            addImage(evt.target.result);
-          });
-          reader.readAsDataURL(file);
-        }
+const loadImage = function (imageLoader, addImage) {
+  const imageFiles = Array.from(imageLoader.files);
+  if (imageFiles) {
+    imageFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.addEventListener('load', (evt) => {
+        addImage(evt.target.result);
       });
-    }
-  };
+      reader.readAsDataURL(file);
+    });
+  }
+};
 
-  var cleanImages = function () {
-    avatarPreview.src = DEFAULT_AVATAR;
-    var addedPhotos = document.querySelectorAll('.ad-form__photo--added');
-    if (addedPhotos) {
-      addedPhotos.forEach(function (photo) {
-        photo.remove();
-      });
-      firstPhotoWrapper.innerHTML = '';
-    }
-  };
+const cleanImages = function () {
+  avatarLoader.files.value = DEFAULT_AVATAR;
+  avatarPreview.src = DEFAULT_AVATAR;
+  photoLoader.files.value = '';
+  const addedPhotos = document.querySelectorAll('.ad-form__photo--added');
+  if (addedPhotos) {
+    addedPhotos.forEach((photo) => {
+      photo.remove();
+    });
+    firstPhotoWrapper.innerHTML = '';
+  }
+};
 
-  var changeImages = function () {
-    avatarLoader.addEventListener('change', onAvatarChange);
-    photoLoader.addEventListener('change', onPhotoChange);
-  };
+const changeAvatar = function (avatar) {
+  avatarPreview.src = avatar;
+};
 
-  var removeImages = function () {
-    avatarLoader.removeEventListener('change', onAvatarChange);
-    photoLoader.removeEventListener('change', onPhotoChange);
-  };
+const onAvatarChange = function (evt) {
+  loadImage(evt.target, changeAvatar);
+};
 
-  window.images = {
-    clean: cleanImages,
-    change: changeImages,
-    remove: removeImages
-  };
+const onPhotoChange = function (evt) {
+  loadImage(evt.target, addPhoto);
+};
 
 
-})();
+avatarLoader.addEventListener('change', onAvatarChange, false);
+photoLoader.addEventListener('change', onPhotoChange, false);
+
+
+export {
+  cleanImages
+};

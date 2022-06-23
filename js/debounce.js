@@ -1,22 +1,13 @@
-'use strict';
+const DELAY = 500;
 
-(function () {
-
-  var DEBOUNCE_INTERVAL = 500;
-
-  window.debounce = function (cb) {
-    var lastTimeout = null;
-
-    return function () {
-      var parameters = arguments;
-      if (lastTimeout) {
-        window.clearTimeout(lastTimeout);
-      }
-      lastTimeout = window.setTimeout(function () {
-        cb.apply(null, parameters);
-      }, DEBOUNCE_INTERVAL);
-    };
+function debounce(callback) {
+  let timeoutId;
+  return (...rest) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => callback.apply(this, rest), DELAY);
   };
+}
 
-
-})();
+export {
+  debounce
+};

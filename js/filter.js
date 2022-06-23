@@ -1,73 +1,70 @@
-'use strict';
+import { markerGroup } from './map.js';
 
 
-(function () {
+const ANY = 'any';
 
-  var ANY = 'any';
-  var MAX_OFFERS_AMOUNT = 5;
-  var LOW_TO_MIDDLE_PRICE = 10000;
-  var MIDDLE_TO_HIGH_PRICE = 50000;
+const PricePool = {
+  'low': {
+    min: 0,
+    max: 10000
+  },
+  'high': {
+    min: 50000,
+    max: 100000
+  },
+  'middle': {
+    min: 10000,
+    max: 50000
+  },
+  'any': {
+    min: 0,
+    max: 100000
+  },
+};
 
-  var mapFilters = document.querySelector('.map__filters');
-  var accommodationFilter = mapFilters.querySelector('#housing-type');
-  var priceFilter = mapFilters.querySelector('#housing-price');
-  var roomsFilter = mapFilters.querySelector('#housing-rooms');
-  var guestsFilter = mapFilters.querySelector('#housing-guests');
-  var featuresFilter = mapFilters.querySelectorAll('#housing-features input');
+const mapFilters = document.querySelector('.map__filters');
+const accommodationFilter = mapFilters.querySelector('#housing-type');
+const priceFilter = mapFilters.querySelector('#housing-price');
+const roomsFilter = mapFilters.querySelector('#housing-rooms');
+const guestsFilter = mapFilters.querySelector('#housing-guests');
+// const featuresFilter = mapFilters.querySelectorAll('#housing-features input');
 
-  var applyAccommodationFilter = function (offer) {
-    return accommodationFilter.value === ANY || accommodationFilter.value === offer.offer.type;
-  };
+const filterByAccommodation = ({offer}) => {
+  if (accommodationFilter.value === ANY) {
+    return offer;
+  }
+  if (offer.type === accommodationFilter.value) {
+    return offer;
+  }
+};
 
-  var applyRoomsFilter = function (offer) {
-    return roomsFilter.value === ANY || +roomsFilter.value === offer.offer.rooms;
-  };
+const filterByRooms = ({offer}) => (roomsFilter.value === ANY) ? offer : offer.rooms === +roomsFilter.value;
 
-  var applyGuestsFilter = function (offer) {
-    return guestsFilter.value === ANY || +guestsFilter.value === offer.offer.guests;
-  };
+const filterByGuests = ({offer}) => (guestsFilter.value === ANY) ? offer : offer.guests === +guestsFilter.value;
 
-  var applyPriceFilter = function (offer) {
-    var PricePool = {
-      'low': offer.offer.price <= LOW_TO_MIDDLE_PRICE,
-      'middle': offer.offer.price > LOW_TO_MIDDLE_PRICE && offer.offer.price <= MIDDLE_TO_HIGH_PRICE,
-      'high': offer.offer.price > MIDDLE_TO_HIGH_PRICE,
-    };
-    return priceFilter.value === ANY || PricePool[priceFilter.value];
-  };
+const filterByPrice = ({offer}) => offer.price >= PricePool[priceFilter.value].min && offer.price <= PricePool[priceFilter.value].max;
 
-  var applyFeaturesFilter = function (offer) {
-    return Array.from(featuresFilter).filter(function (feature) {
-      return feature.checked;
-    }).every(function (feature) {
-      return offer.offer.features.includes(feature.value);
-    });
-  };
+const filterByFeatures = ({offer}) => {
+  const filteredFeatures = [];
+  const checkedFeatures = document.querySelector('.map__features').querySelectorAll('input:checked');
+  checkedFeatures.forEach((element) => filteredFeatures.push(element.value));
+  if (offer.features){
+    return filteredFeatures.every((feature) => offer.features.includes(feature));
+  }
+  return false;
+};
 
-  var filterOffers = function (data) {
-    var filteredOffers = [];
-    for (var i = 0; i < data.length; i++) {
-      if (applyAccommodationFilter(data[i]) &&
-      applyRoomsFilter(data[i]) &&
-      applyGuestsFilter(data[i]) &&
-      applyPriceFilter(data[i]) &&
-      applyFeaturesFilter(data[i])) {
-        if (filteredOffers.length === MAX_OFFERS_AMOUNT) {
-          break;
-        }
-        filteredOffers.push(data[i]);
-      }
-    }
-    return filteredOffers;
-  };
+const filterOffers = (offers) => offers.filter((offer) => (filterByAccommodation(offer) &&
+  filterByPrice(offer) &&
+  filterByRooms(offer) &&
+  filterByGuests(offer) &&
+  filterByFeatures(offer)));
 
-  mapFilters.addEventListener('change', function () {
-    window.map.cleanOffers();
-    window.map.renderOffers(filterOffers(window.data));
+const setMapFilters = (callback) => {
+  mapFilters.addEventListener('change', () => {
+    markerGroup.clearLayers();
+    callback();
   });
+};
 
-  window.filter = {
-    offers: filterOffers
-  };
-
-})();
+export { setMapFilters, filterOffers, mapFilters };

@@ -1,216 +1,130 @@
-'use strict';
+import { renderCard } from './card.js';
+import { setMapFilters, filterOffers, mapFilters } from './filter.js';
+import { offerForm } from './validation.js';
+import { getData, showError } from './server.js';
+import { debounce } from './debounce.js';
 
-(function () {
+const MAIN_PIN_SIZE = 52;
+const AD_PIN_SIZE = 40;
+const BASIC_LAT = 35.68948;
+const BASIC_LNG = 139.69170;
+const BASIC_MAP_SCALING = 13;
+const DECIMAL_PLACE = 5;
+const OFFERS_COUNT = 10;
+const map = L.map('map-canvas');
+const adress = document.querySelector('#address');
 
-  var MainPin = {
-    WIDTH: 65,
-    HEIGHT: 65,
-    PIN_TAIL: 22,
-    LEFT_DEFAULT: 570,
-    TOP_DEFAULT: 375
-  };
+const toggleClass = (element, className, value) => {
+  element.classList.toggle(className, value);
+};
 
-  var coordinates = {
-    x: {
-      min: 0,
-      max: 1200
+const toggleFormElements = (formElements, value) => {
+  formElements.forEach((element) => {element.disabled = value;});
+};
+
+const toggleAdForm = (value) => {
+  toggleClass(offerForm, 'ad-form--disabled', value);
+  toggleFormElements(offerForm.querySelectorAll('fieldset'), value);
+};
+
+const toggleFiltersForm = (value) => {
+  toggleClass(mapFilters, 'map__filters--disabled', value);
+  toggleFormElements(mapFilters.querySelectorAll('select, .map__features'), value);
+};
+
+const toggleForms = (value) => {
+  toggleAdForm(value);
+  toggleFiltersForm(value);
+};
+
+const mainPinMarker = L.icon({
+  iconUrl: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 511.999 511.999"%3E%3Cdefs/%3E%3Cpath fill="%23ef1616" d="M255.999 0C152.786 0 68.817 85.478 68.817 190.545c0 58.77 29.724 130.103 88.349 212.017 42.902 59.948 85.178 102.702 86.957 104.494 3.27 3.292 7.572 4.943 11.879 4.943 4.182 0 8.367-1.558 11.611-4.683 1.783-1.717 44.166-42.74 87.149-101.86 58.672-80.701 88.421-153.007 88.421-214.912C443.181 85.478 359.21 0 255.999 0zm0 272.806c-50.46 0-91.511-41.052-91.511-91.511s41.052-91.511 91.511-91.511 91.511 41.052 91.511 91.511-41.053 91.511-91.511 91.511z"/%3E%3C/svg%3E%0A',
+  iconSize: [MAIN_PIN_SIZE, MAIN_PIN_SIZE],
+  iconAnchor: [MAIN_PIN_SIZE/2, MAIN_PIN_SIZE],
+});
+
+const adPin = L.icon({
+  iconUrl: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 511.999 511.999"%3E%3Cdefs/%3E%3Cpath fill="%231975c8" d="M255.999 0C152.786 0 68.817 85.478 68.817 190.545c0 58.77 29.724 130.103 88.349 212.017 42.902 59.948 85.178 102.702 86.957 104.494 3.27 3.292 7.572 4.943 11.879 4.943 4.182 0 8.367-1.558 11.611-4.683 1.783-1.717 44.166-42.74 87.149-101.86 58.672-80.701 88.421-153.007 88.421-214.912C443.181 85.478 359.21 0 255.999 0zm0 272.806c-50.46 0-91.511-41.052-91.511-91.511s41.052-91.511 91.511-91.511 91.511 41.052 91.511 91.511-41.053 91.511-91.511 91.511z"/%3E%3C/svg%3E%0A',
+  iconSize: [AD_PIN_SIZE, AD_PIN_SIZE],
+  iconAnchor: [AD_PIN_SIZE/2, AD_PIN_SIZE],
+});
+
+const marker = L.marker(
+  {
+    lat: BASIC_LAT,
+    lng: BASIC_LNG,
+  },
+  {
+    draggable: true,
+    icon: mainPinMarker,
+  },
+);
+
+const markerGroup = L.layerGroup().addTo(map);
+
+const createMarker = (point) => {
+  const {location} = point;
+  const adMarker = L.marker(
+    {
+      lat: location.lat,
+      lng: location.lng,
     },
-    y: {
-      min: 130,
-      max: 630
-    }
-  };
+    {
+      icon: adPin,
+    },
+  );
+  adMarker
+    .addTo(markerGroup)
+    .bindPopup(renderCard(point));
+};
 
-  var map = document.querySelector('.map');
-  var mainPin = document.querySelector('.map__pin--main');
-  var similarPins = document.querySelector('.map__pins');
-  var address = document.getElementById('address');
-  var offerForm = document.querySelector('.ad-form');
-  var filterForm = document.querySelector('.map__filters');
-  var mapFilters = document.querySelectorAll('.map__filter');
-  var mapFeatures = document.querySelector('.map__features');
-  var formElements = offerForm.querySelectorAll('fieldset');
+const renderMarkers = (offers) => {
+  offers
+    .slice()
+    .slice(0, OFFERS_COUNT)
+    .forEach((point) => createMarker(point));
+};
 
+const loadMap = () => {
+  map.on('load', () => {
+    getData((offers) => {
+      setMapFilters(debounce(
+        () => renderMarkers(filterOffers(offers)),
+      ));
+      renderMarkers(offers);
+      toggleForms(false);
+    }, () => showError('Не удалось получить данные. Попробуйте ещё раз'));
+  })
+    .setView({
+      lat: BASIC_LAT,
+      lng: BASIC_LNG,
+    }, BASIC_MAP_SCALING);
+};
 
-  var isDataSuccess = function (offers) {
-    window.data = offers;
-    renderOffers(window.filter.offers(offers));
-  };
+const resetMap = () => map.setView({
+  lat: BASIC_LAT,
+  lng: BASIC_LNG,
+});
 
-  var renderOffers = window.debounce(function (offers) {
-    var fragment = document.createDocumentFragment();
+L.tileLayer(
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  },
+).addTo(map);
 
-    offers.forEach(function (offer) {
-      fragment.appendChild(window.pin.render(offer));
-    });
-    similarPins.appendChild(fragment);
+const resetMarker = () => {
+  marker.setLatLng({
+    lat: BASIC_LAT,
+    lng: BASIC_LNG,
   });
+};
 
-  var isDataError = function (errorMessage) {
-    var node = document.createElement('div');
-    node.style = 'z-index: 100; margin: 0 auto; text-align: center; background-color: red;';
-    node.style.position = 'absolute';
-    node.style.left = 0;
-    node.style.right = 0;
-    node.style.fontSize = '30px';
-    node.textContent = errorMessage;
-    document.body.insertAdjacentElement('afterbegin', node);
-  };
+marker.addTo(map);
 
-  var cleanOffers = function () {
-    var mapCard = map.querySelector('.map__card');
-    if (mapCard) {
-      mapCard.remove();
-    }
-    var mapPins = map.querySelectorAll('.map__pin');
+marker.on('drag', (evt) => {
+  const coordinates = evt.target.getLatLng();
+  adress.value = `${coordinates.lat.toFixed(DECIMAL_PLACE)}, ${coordinates.lng.toFixed(DECIMAL_PLACE)}`;
+});
 
-    mapPins.forEach(function (pin) {
-      if (!pin.classList.contains('map__pin--main')) {
-        pin.remove();
-      }
-    });
-  };
-
-  /**
-   * Переводит страницу в активное состояние
-  */
-  var setActiveState = function () {
-    map.classList.remove('map--faded');
-    offerForm.classList.remove('ad-form--disabled');
-    formElements.forEach(function (element) {
-      element.disabled = false;
-    });
-    mapFeatures.disabled = false;
-    mapFilters.forEach(function (fieldset) {
-      fieldset.disabled = false;
-    });
-    window.server.load(isDataSuccess, isDataError);
-    window.images.change();
-    address.value = MainPin.LEFT_DEFAULT + (Math.round(MainPin.WIDTH / 2)) + ', ' + (MainPin.TOP_DEFAULT + MainPin.HEIGHT + MainPin.PIN_TAIL);
-    address.readOnly = true;
-    mainPin.removeEventListener('mousedown', onClickActiveState);
-    mainPin.removeEventListener('keydown', onKeydownActiveState);
-  };
-
-  /**
-   * Переводит страницу в неактивное состояние
-  */
-  var setInactiveState = function () {
-    map.classList.add('map--faded');
-    offerForm.classList.add('ad-form--disabled');
-    mapFilters.forEach(function (fieldset) {
-      fieldset.disabled = true;
-    });
-    mapFeatures.disabled = true;
-    formElements.forEach(function (element) {
-      element.disabled = true;
-    });
-    cleanOffers();
-    offerForm.reset();
-    filterForm.reset();
-    window.images.clean();
-    window.images.remove();
-    window.form.filterCapacity(window.form.roomSelection.value);
-    mainPin.style.left = MainPin.LEFT_DEFAULT + 'px';
-    mainPin.style.top = MainPin.TOP_DEFAULT + 'px';
-    address.value = MainPin.LEFT_DEFAULT + (Math.round(MainPin.WIDTH / 2)) + ', ' + (MainPin.TOP_DEFAULT + Math.round(MainPin.HEIGHT / 2));
-  };
-
-  setInactiveState();
-
-  var onClickActiveState = function (evt) {
-    if (evt.button === 0) {
-      setActiveState();
-    }
-  };
-
-  var onKeydownActiveState = function (evt) {
-    if (evt.key === window.util.ENTER_KEY) {
-      setActiveState();
-    }
-  };
-
-  var clickMainPin = function () {
-    mainPin.addEventListener('mousedown', onClickActiveState);
-    mainPin.addEventListener('keydown', onKeydownActiveState);
-  };
-
-  clickMainPin();
-
-  var onMainPinClick = function (evt) {
-    evt.preventDefault();
-
-    var startCoords = {
-      x: evt.clientX,
-      y: evt.clientY
-    };
-
-    var onMouseMove = function (moveEvt) {
-      moveEvt.preventDefault();
-
-      var shift = {
-        x: startCoords.x - moveEvt.clientX,
-        y: startCoords.y - moveEvt.clientY
-      };
-
-      startCoords = {
-        x: moveEvt.clientX,
-        y: moveEvt.clientY
-      };
-
-      var pinCoords = {
-        x: mainPin.offsetLeft - shift.x + Math.round(MainPin.WIDTH / 2),
-        y: mainPin.offsetTop - shift.y + MainPin.HEIGHT + MainPin.PIN_TAIL
-      };
-
-      if (pinCoords.x >= coordinates.x.min && pinCoords.x <= coordinates.x.max) {
-        mainPin.style.left = (mainPin.offsetLeft - shift.x) + 'px';
-      }
-
-      if (pinCoords.y >= coordinates.y.min && pinCoords.y <= coordinates.y.max) {
-        mainPin.style.top = (mainPin.offsetTop - shift.y) + 'px';
-      }
-
-      if (pinCoords.x < coordinates.x.min) {
-        pinCoords.x = coordinates.x.min;
-        mainPin.style.left = pinCoords.x - Math.round(MainPin.WIDTH / 2) + 'px';
-      }
-      if (pinCoords.x > coordinates.x.max) {
-        pinCoords.x = coordinates.x.max;
-        mainPin.style.left = pinCoords.x - Math.round(MainPin.WIDTH / 2) + 'px';
-      }
-
-      if (pinCoords.y < coordinates.y.min) {
-        pinCoords.y = coordinates.y.min;
-        mainPin.style.top = pinCoords.y - MainPin.HEIGHT - MainPin.PIN_TAIL + 'px';
-      }
-      if (pinCoords.y > coordinates.y.max) {
-        pinCoords.y = coordinates.y.max;
-        mainPin.style.top = pinCoords.y - MainPin.HEIGHT - MainPin.PIN_TAIL + 'px';
-      }
-
-      address.value = pinCoords.x + ', ' + pinCoords.y;
-    };
-
-
-    var onMouseUp = function (upEvt) {
-      upEvt.preventDefault();
-
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    };
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  };
-
-  mainPin.addEventListener('mousedown', onMainPinClick);
-
-  window.map = {
-    renderOffers: renderOffers,
-    cleanOffers: cleanOffers,
-    setInactiveState: setInactiveState,
-    clickMainPin: clickMainPin
-  };
-
-})();
+export { loadMap, resetMap, offerForm, resetMarker, markerGroup, renderMarkers, toggleForms, toggleFiltersForm };

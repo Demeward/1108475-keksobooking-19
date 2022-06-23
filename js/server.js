@@ -1,58 +1,49 @@
-'use strict';
+import { onClickResetForm } from './form.js';
 
-(function () {
+const ERROR_SHOW_TIME = 5000;
+const DATABASE_URL = 'https://25.javascript.pages.academy/keksobooking';
+const DATABSE_OFFERS_URL = `${DATABASE_URL}/data`;
 
-  var DATA_URL = 'https://js.dump.academy/keksobooking/data';
-  var FORM_URL = 'https://js.dump.academy/keksobooking';
-  var StatusCode = {
-    OK: 200
-  };
-  var TIMEOUT_IN_MS = 10000;
+const showError = (error) => {
+  const errorContainer = document.createElement('div');
+  errorContainer.classList.add('error-container');
+  errorContainer.textContent = error;
 
-  var getXhrStatus = function (xhr, onSuccess, onError) {
-    xhr.responseType = 'json';
+  document.body.append(errorContainer);
 
-    xhr.addEventListener('load', function () {
-      if (xhr.status === StatusCode.OK) {
-        onSuccess(xhr.response);
+  setTimeout(() => {
+    errorContainer.remove();
+  }, ERROR_SHOW_TIME);
+};
+
+const getData = (onSuccess, onError) => {
+  fetch(DATABSE_OFFERS_URL )
+    .then((response) => response.json())
+    .then((offers) => {
+      onSuccess(offers);
+    })
+    .catch(onError);
+};
+
+const sendData = (onSuccess, onError, body) => {
+  fetch(
+    DATABASE_URL,
+    {
+      method: 'POST',
+      body,
+    },
+  )
+    .then((response) => {
+      if (response.ok) {
+        onSuccess();
+        onClickResetForm();
       } else {
-        onError('Статус ответа: ' + xhr.status + ' ' + xhr.statusText);
+        onError('Не удалось отправить форму. Попробуйте ещё раз');
       }
+    })
+    .catch(() => {
+      onError('Не удалось отправить форму. Попробуйте ещё раз');
     });
-    xhr.addEventListener('error', function () {
-      onError('Произошла ошибка соединения');
-    });
-    xhr.addEventListener('timeout', function () {
-      onError('Запрос не успел выполниться за ' + xhr.timeout + 'мс');
-    });
+};
 
-
-    xhr.timeout = TIMEOUT_IN_MS;
-
-  };
-
-  var load = function (onSuccess, onError) {
-    var xhr = new XMLHttpRequest();
-
-    getXhrStatus(xhr, onSuccess, onError);
-
-    xhr.open('GET', DATA_URL);
-    xhr.send();
-  };
-
-  var sendForm = function (form, onFormSuccess, onFormError) {
-    var xhr = new XMLHttpRequest();
-
-    getXhrStatus(xhr, onFormSuccess, onFormError);
-
-    xhr.open('POST', FORM_URL);
-    xhr.send(form);
-  };
-
-  window.server = {
-    load: load,
-    sendForm: sendForm
-  };
-
-
-})();
+export { getData, sendData, showError };
